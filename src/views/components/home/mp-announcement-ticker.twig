@@ -1,0 +1,71 @@
+{#
+| Variable                    | Type     | Description                          |
+|-----------------------------|----------|--------------------------------------|
+| component.speed             | string   | 'slow' | 'normal' | 'fast'           |
+| component.messages[].text   | string   | Message text                         |
+| component.messages[].url    | ?string  | Optional link                        |
+| componentId                 | string   |                                      |
+
+  ANNOUNCEMENT TICKER
+  ---------------------------------------------------------------------------
+  The running promo strip marketplaces put at the very top of the page.
+
+  HOW THE LOOP IS SEAMLESS
+  ---------------------------------------------------------------------------
+  The message list is rendered TWICE and the track is translated by exactly
+  -50%. When the animation completes, the second copy sits precisely where the
+  first began, so there is no gap or jump at the wrap point. Rendering it once
+  and looping produces a visible stutter every cycle.
+
+  The duplicate is aria-hidden so a screen reader announces each message once,
+  not twice.
+
+  Duration scales with the number of messages, so adding a message slows the
+  belt rather than speeding every message up past readability.
+
+  Pauses on hover so a shopper can actually read an offer they spotted, and
+  honours prefers-reduced-motion by stopping entirely - a permanently moving
+  strip is a genuine accessibility problem for some readers.
+#}
+{% set speed = component.speed|default('normal') %}
+{% set per_msg = speed == 'fast' ? 4 : (speed == 'slow' ? 9 : 6) %}
+{% set count = component.messages|length %}
+{% set duration = count * per_msg %}
+
+{% if count > 0 %}
+<section component-id="{{ componentId }}"
+         data-testid="store-home-ticker"
+         class="s-block s-block--mp-ticker mp-ticker"
+         role="region"
+         aria-label="{{ trans('common.titles.offers')|default('Store offers') }}">
+
+  <div class="mp-ticker__mask">
+    <div class="mp-ticker__track" style="animation-duration: {{ duration }}s;">
+
+      {# First copy - the one screen readers announce. #}
+      {% for m in component.messages %}
+        <span class="mp-ticker__item">
+          <i class="sicon-bell mp-ticker__icon" aria-hidden="true"></i>
+          {% if m.url %}
+            <a href="{{ m.url }}" class="mp-ticker__link">{{ m.text }}</a>
+          {% else %}
+            <span>{{ m.text }}</span>
+          {% endif %}
+        </span>
+      {% endfor %}
+
+      {# Second copy - visual only, so the loop has no seam. #}
+      {% for m in component.messages %}
+        <span class="mp-ticker__item" aria-hidden="true">
+          <i class="sicon-bell mp-ticker__icon" aria-hidden="true"></i>
+          {% if m.url %}
+            <a href="{{ m.url }}" class="mp-ticker__link" tabindex="-1">{{ m.text }}</a>
+          {% else %}
+            <span>{{ m.text }}</span>
+          {% endif %}
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

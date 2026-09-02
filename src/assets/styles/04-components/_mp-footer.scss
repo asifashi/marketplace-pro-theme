@@ -1,0 +1,181 @@
+/* =============================================================================
+   MARKETPLACE FOOTER
+   =============================================================================
+   Three bands: trust strip, link columns, legal bar. Every value comes from
+   _mp-tokens.scss so a merchant recolouring the theme recolours the footer.
+   ========================================================================== */
+
+.mp-footer {
+  background: var(--mp-surface);
+  color: var(--mp-ink-2);
+  font-size: 0.8125rem;
+
+  .container {
+    max-width: 100%;
+    padding-left: var(--mp-gutter);
+    padding-right: var(--mp-gutter);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   BAND 1 - trust strip
+   Given its own full-width band under the page content, where it answers
+   "will this arrive and can I return it" at the moment of decision.
+   ------------------------------------------------------------------------ */
+.mp-footer__trust {
+  background: var(--mp-ground);
+  border-top: 1px solid var(--mp-line);
+  border-bottom: 1px solid var(--mp-line);
+}
+
+.mp-footer__trust-inner {
+  padding-block: 18px;
+
+  salla-trust-badges {
+    display: block;
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   BAND 2 - link columns
+   ------------------------------------------------------------------------ */
+.mp-footer__main {
+  padding-block: 36px 28px;
+}
+
+.mp-footer__grid {
+  display: grid;
+  /* Brand column is twice the width of a link column - it carries the logo
+     and the store description, which need a readable measure. */
+  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.mp-footer__col--brand {
+  max-width: 380px;   /* keeps the description near a readable line length */
+}
+
+.mp-footer__logo img {
+  height: 40px;
+  width: auto;
+  max-height: 40px;
+  object-fit: contain;
+  margin-bottom: 14px;
+}
+
+.mp-footer__desc {
+  line-height: 1.65;
+  color: var(--mp-ink-3);
+  margin-bottom: 16px;
+}
+
+.mp-footer__heading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--mp-ink);
+  margin: 0 0 12px;
+}
+
+.mp-footer__social {
+  margin-top: 8px;
+}
+
+/* ---------------------------------------------------------------------------
+   BAND 3 - legal bar
+   ------------------------------------------------------------------------ */
+.mp-footer__legal {
+  background: var(--mp-ground);
+  border-top: 1px solid var(--mp-line);
+}
+
+.mp-footer__legal-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-block: 16px;
+  font-size: 0.75rem;
+  color: var(--mp-ink-3);
+}
+
+.mp-footer__payments {
+  /* Payment marks are the one place a little extra width is worth it - a
+     shopper scanning for "do you take mada" should find it without hunting. */
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  min-width: 200px;
+}
+
+.mp-footer__tax {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mp-footer__tax-cert img {
+  width: 36px;
+  height: auto;
+  border-radius: var(--mp-r-sm);
+  transition: opacity 0.16s ease;
+
+  &:hover { opacity: 0.8; }
+}
+
+.mp-footer__tax-text {
+  line-height: 1.3;
+
+  p { margin: 0; color: var(--mp-ink-3); }
+  b { color: var(--mp-ink-2); }
+}
+
+/* ---------------------------------------------------------------------------
+   Dark variant - driven by the existing `footer_is_dark` theme setting, so a
+   merchant who already had it on keeps it.
+   ------------------------------------------------------------------------ */
+.store-footer.mp-footer.footer--dark,
+body.footer-dark .mp-footer {
+  background: var(--mp-ink);
+  color: rgba(255, 255, 255, 0.78);
+
+  .mp-footer__trust,
+  .mp-footer__legal {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .mp-footer__heading { color: #fff; }
+  .mp-footer__desc,
+  .mp-footer__legal-inner,
+  .mp-footer__tax-text p { color: rgba(255, 255, 255, 0.6); }
+  .mp-footer__tax-text b { color: rgba(255, 255, 255, 0.9); }
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------ */
+@media (max-width: 1023px) {
+  .mp-footer__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+  }
+  .mp-footer__col--brand { grid-column: 1 / -1; max-width: none; }
+}
+
+@media (max-width: 640px) {
+  .mp-footer__grid { grid-template-columns: 1fr; gap: 22px; }
+  .mp-footer__main { padding-block: 26px 20px; }
+
+  .mp-footer__legal-inner {
+    justify-content: center;
+    text-align: center;
+  }
+  .mp-footer__payments { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-footer__tax-cert img { transition: none; }
+}

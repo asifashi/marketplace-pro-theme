@@ -1,0 +1,65 @@
+{#
+| Variable            | Type    | Description                                  |
+|---------------------|---------|----------------------------------------------|
+| component.title     | string  | Section heading                              |
+| component.ends_at   | string  | 'YYYY-MM-DD HH:MM' when the deal expires     |
+| component.url       | ?string | "View all" destination                       |
+| componentId         | string  |                                              |
+
+  DEAL OF THE DAY
+  ---------------------------------------------------------------------------
+  The countdown strip marketplaces run above a discounted set. Salla ships no
+  countdown block, so this is theme-declared.
+
+  THE DEADLINE IS RENDERED AS AN ISO TIMESTAMP IN A data- ATTRIBUTE
+  ---------------------------------------------------------------------------
+  and the digits are filled in by JS on the client. That matters: the server
+  renders in the STORE's timezone, the shopper's browser is in theirs, and a
+  countdown computed server-side is wrong for anyone in a different zone - and
+  frozen at page-render time regardless.
+
+  Server-rendered fallback digits are still emitted so the strip is not blank
+  before JS runs, and the whole section self-gates on `ends_at` being set.
+
+  NOTE ON THE DATE FORMAT
+  ---------------------------------------------------------------------------
+  The merchant types a plain 'YYYY-MM-DD HH:MM'. It is converted to ISO with a
+  'T' separator because Safari refuses to parse a space-separated date string
+  in `new Date()` and returns NaN - a real cross-browser trap, not a
+  hypothetical one.
+#}
+{% if component.ends_at %}
+{% set iso = component.ends_at|replace({' ': 'T'}) %}
+
+<section component-id="{{ componentId }}"
+         data-testid="store-home-deal-countdown"
+         class="s-block s-block--mp-deal mp-deal">
+  <div class="container mp-deal__inner">
+
+    <div class="mp-deal__lead">
+      <i class="sicon-bolt mp-deal__bolt" aria-hidden="true"></i>
+      <h2 class="mp-deal__title">{{ component.title }}</h2>
+    </div>
+
+    {# role=timer + aria-live=off: it updates every second, and announcing
+       each tick would make a screen reader unusable. #}
+    <div class="mp-deal__timer mp-countdown"
+         data-mp-countdown="{{ iso }}"
+         role="timer"
+         aria-live="off">
+      <span class="mp-deal__unit"><b data-unit="hours">--</b><small>{{ trans('common.elements.hours')|default('hrs') }}</small></span>
+      <span class="mp-deal__sep">:</span>
+      <span class="mp-deal__unit"><b data-unit="minutes">--</b><small>{{ trans('common.elements.minutes')|default('min') }}</small></span>
+      <span class="mp-deal__sep">:</span>
+      <span class="mp-deal__unit"><b data-unit="seconds">--</b><small>{{ trans('common.elements.seconds')|default('sec') }}</small></span>
+    </div>
+
+    {% if component.url %}
+      <a href="{{ component.url }}" class="mp-deal__all">
+        {{ trans('common.elements.show_all')|default('View all') }}
+        <i class="sicon-keyboard_arrow_left" aria-hidden="true"></i>
+      </a>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

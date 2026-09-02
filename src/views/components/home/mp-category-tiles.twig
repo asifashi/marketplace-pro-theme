@@ -1,0 +1,73 @@
+{#
+| Variable                | Type     | Description                                    |
+|-------------------------|----------|------------------------------------------------|
+| component               | object   | Merchant settings from twilight.json           |
+| component.title         | ?string  | Optional section heading                       |
+| component.shape         | string   | 'circle' | 'rounded'                            |
+| component.per_row       | string   | 5..8 tiles per row on desktop                  |
+| component.tiles[].image | string   | Tile image url                                 |
+| component.tiles[].label | string   | Tile caption                                   |
+| component.tiles[].url   | string   | Destination                                    |
+| componentId             | string   |                                                |
+| position                | int      | Sorting number, starts at zero                 |
+
+  CATEGORY TILES
+  ---------------------------------------------------------------------------
+  The row of round category shortcuts every marketplace puts directly under
+  the hero. Salla ships no such block - its category display is a product
+  slider - so this is a theme-declared custom component.
+
+  WHY A PLAIN SCROLLER AND NOT SALLA-SLIDER
+  ---------------------------------------------------------------------------
+  salla-slider wraps Swiper, and Swiper writes `width` INLINE on every slide.
+  That is what silently broke two category rules on a live store after a Salla
+  update: a class rule cannot beat an inline style without !important, so the
+  tiles collapsed to white boxes. A CSS scroll-snap rail has no such problem,
+  needs no JS, and degrades to a normal scrollable row if styles fail to load.
+
+  The arrows are progressively enhanced - they only appear when JS runs, and
+  the rail is swipeable/scrollable without them.
+#}
+{% set shape = component.shape|default('circle') %}
+{% set per_row = component.per_row|default('7') %}
+
+<section component-id="{{ componentId }}"
+         data-testid="store-home-category-tiles"
+         class="s-block s-block--mp-tiles mp-tiles"
+         style="--mp-tiles-per-row: {{ per_row }};">
+
+  {% if component.title %}
+    <div class="container mp-tiles__head">
+      <h2 class="mp-tiles__title">{{ component.title }}</h2>
+    </div>
+  {% endif %}
+
+  <div class="container mp-tiles__wrap">
+    {# Arrows are injected as real buttons so they are keyboard reachable.
+       They are hidden by CSS until the rail actually overflows. #}
+    <button type="button" class="mp-tiles__arrow mp-tiles__arrow--prev"
+            aria-label="{{ trans('common.elements.previous') }}" hidden>
+      <i class="sicon-keyboard_arrow_right" aria-hidden="true"></i>
+    </button>
+
+    <ul class="mp-tiles__rail" data-mp-rail>
+      {% for tile in component.tiles %}
+        <li class="mp-tiles__item">
+          <a href="{{ tile.url }}" class="mp-tiles__link mp-tiles__link--{{ shape }}">
+            <span class="mp-tiles__plate">
+              <img src="{{ tile.image|cdn(200) }}"
+                   alt="{{ tile.label }}"
+                   loading="lazy" width="96" height="96">
+            </span>
+            <span class="mp-tiles__label">{{ tile.label }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <button type="button" class="mp-tiles__arrow mp-tiles__arrow--next"
+            aria-label="{{ trans('common.elements.next') }}" hidden>
+      <i class="sicon-keyboard_arrow_left" aria-hidden="true"></i>
+    </button>
+  </div>
+</section>

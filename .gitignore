@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Yarn Integrity file
+.yarn-integrity
+
+#assets/dist
+package-lock.json
+pnpm-lock.yaml
+yarn.lock.json
+yarn.lock
+pnpm-lock.yaml
+.idea
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+.DS_Store
+
+
+
+# Local safety backups taken before edits - not part of the theme
+*.orig_*
+
+# Sibling React theme projects - separate repos, must not ship inside this theme
+marketplace-pro
+smartbest-theme
+
+# Local dev screenshots and scratch notes
+shot-*.png
+cards-*.png
+OLD-TWIG-DO-NOT-USE.bat.txt

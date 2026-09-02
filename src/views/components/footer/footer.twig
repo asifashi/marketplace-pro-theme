@@ -1,0 +1,142 @@
+{#
+  ============================================================================
+  MARKETPLACE FOOTER
+  ============================================================================
+  Re-laid out to the pattern every large marketplace converges on, because it
+  answers the questions a shopper actually has at the bottom of a page:
+
+    band 1  trust strip  - shipping, returns, secure payment, support
+    band 2  link columns - store menu, contact, apps, social
+    band 3  legal bar    - copyright, payment methods, tax number
+
+  WHAT WAS KEPT
+  --------------------------------------------------------------------------
+  Every Salla component from the stock footer is still here:
+    salla-social, salla-trust-badges, salla-menu, salla-contacts,
+    salla-apps-icons, salla-payments, salla-modal (tax certificate)
+  plus the tax-number block and the {% hook copyright %}.
+
+  Removing any of these silently drops something a merchant configured - the
+  tax number is a legal requirement on a Saudi storefront, and the copyright
+  hook is where apps inject their own markup. So this is a re-layout, not a
+  rewrite from an empty file.
+
+  WHY THE TRUST STRIP IS FIRST
+  --------------------------------------------------------------------------
+  On the stock footer the trust badges sit in the middle column where they
+  read as decoration. Given their own full-width band directly under the page
+  content they do the job they exist for - answering "will this arrive, and
+  can I send it back" at the moment the shopper is deciding.
+
+  All spacing and colour come from _mp-tokens.scss.
+#}
+
+<footer data-testid="store-footer" class="store-footer mp-footer">
+
+  {# ==========================================================================
+     BAND 1 - trust strip
+     ========================================================================== #}
+  <div class="mp-footer__trust">
+    <div class="container mp-footer__trust-inner">
+      <salla-trust-badges
+        data-testid="store-footer-trust-badges"
+        {% if theme.settings.get('footer_is_dark') %} dark {% endif %}></salla-trust-badges>
+    </div>
+  </div>
+
+  {# ==========================================================================
+     BAND 2 - link columns
+     ========================================================================== #}
+  <div aria-label="footer" class="store-footer__inner mp-footer__main">
+    <div class="container mp-footer__grid">
+
+      {# ---- Brand column ------------------------------------------------- #}
+      <div class="mp-footer__col mp-footer__col--brand">
+        <a href="{{ link('/') }}" class="mp-footer__logo">
+          <img src="{{ store.logo|cdn(175) }}" alt="{{ store.name }}" loading="lazy">
+        </a>
+
+        {% if store.description %}
+          <div class="mp-footer__desc">{{ store.description }}</div>
+        {% endif %}
+
+        {# Social lives in the brand column on desktop. The stock theme
+           rendered it twice - once hidden on mobile, once hidden on desktop.
+           Kept both instances so neither breakpoint loses it. #}
+        <div class="hidden lg:block">
+          <salla-social data-testid="store-footer-social" class="mp-footer__social"></salla-social>
+        </div>
+      </div>
+
+      {# ---- Store menu ---------------------------------------------------- #}
+      <div class="mp-footer__col">
+        <h3 class="mp-footer__heading">{{ trans('common.titles.important_links') }}</h3>
+        <salla-menu data-testid="store-footer-menu" source="footer" with-cookie-preferences></salla-menu>
+      </div>
+
+      {# ---- Contact ------------------------------------------------------- #}
+      <div class="mp-footer__col">
+        <h3 class="mp-footer__heading">{{ trans('common.titles.contact_us') }}</h3>
+        <salla-contacts data-testid="store-footer-contacts"></salla-contacts>
+
+        {# Mobile-only social - the desktop instance is in the brand column. #}
+        <div class="lg:hidden contact-social mp-footer__social">
+          <salla-social data-testid="store-footer-social-mobile"></salla-social>
+        </div>
+      </div>
+
+      {# ---- Apps ---------------------------------------------------------- #}
+      <div class="mp-footer__col mp-footer__col--apps">
+        <salla-apps-icons data-testid="store-footer-apps"></salla-apps-icons>
+      </div>
+    </div>
+  </div>
+
+  {# ==========================================================================
+     BAND 3 - legal bar
+     --------------------------------------------------------------------------
+     Copyright, payment methods and the tax number. On a Saudi storefront the
+     VAT number is a legal requirement, so it is never conditionally dropped -
+     only the certificate image is optional.
+     ========================================================================== #}
+  <div class="mp-footer__legal">
+    <div class="container mp-footer__legal-inner">
+
+      <span class="mp-footer__copyright copyright-text">{% hook copyright %}</span>
+
+      <salla-payments data-testid="store-footer-payments" class="mp-footer__payments"></salla-payments>
+
+      {% if store.settings.tax.number %}
+        <div class="mp-footer__tax">
+          {% if store.settings.tax.certificate %}
+            <a class="load-img-onclick mp-footer__tax-cert"
+               data-modal-id="modal-value-tax" href="#/"
+               alt="{{ store.settings.tax.number }}">
+              <img width="40" height="50" loading="lazy"
+                   src="{{ 'images/tax.png' | cdn(70,70) }}"
+                   alt="value added tax">
+            </a>
+          {% endif %}
+          <div class="mp-footer__tax-text">
+            <p>{{ trans('common.elements.tax_number') }}</p>
+            <b class="mp-num">{{ store.settings.tax.number }}</b>
+          </div>
+        </div>
+
+        {% if store.settings.tax.certificate %}
+          <salla-modal data-testid="store-footer-tax-modal"
+                       sub-title-first
+                       sub-title="{{ trans('common.elements.tax_number') }}"
+                       modal-title="{{ store.settings.tax.number }}"
+                       id="modal-value-tax">
+            <div class="flex justify-center max-w-full">
+              <img class="w-full" loading="lazy"
+                   src="{{ store.settings.tax.certificate }}"
+                   alt="{{ trans('common.elements.tax_number') }}">
+            </div>
+          </salla-modal>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</footer>

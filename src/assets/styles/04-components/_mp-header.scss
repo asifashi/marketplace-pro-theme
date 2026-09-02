@@ -1,0 +1,233 @@
+/* =============================================================================
+   MARKETPLACE HEADER
+   =============================================================================
+   Styles for the re-laid-out header.twig. Every value comes from
+   _mp-tokens.scss - nothing is hard-coded here, so a merchant recolouring the
+   theme recolours the header with it.
+
+   The two row heights live in --mp-header-top / --mp-header-nav. Anything
+   that needs to sit below the header (sticky filters, scroll offsets) must
+   read those variables rather than repeat a pixel number. On the live store
+   the header shrank but the menu inside it did not, because a height was set
+   in one place and the padding that filled it in another.
+   ========================================================================== */
+
+.mp-header {
+  position: relative;
+  background: var(--mp-surface);
+
+  /* ---- shared row container ---------------------------------------------
+     Full width with a fixed gutter, no max-width cap. MEASURED on noon at
+     1920px: content runs x=32 to x=1878. A capped container is what makes a
+     storefront read as "zoomed in" on a wide monitor. */
+  .container,
+  &__inner,
+  &__nav-inner {
+    max-width: 100%;
+    padding-left: var(--mp-gutter);
+    padding-right: var(--mp-gutter);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   ROW 1 - accent bar
+   ------------------------------------------------------------------------ */
+.mp-header__bar {
+  background: var(--mp-accent);
+  color: var(--mp-accent-ink);
+}
+
+.mp-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: var(--mp-header-top);
+  /* The row grows a little past the token height because search is 40px
+     tall; the token is the FLOOR, not a clamp. Clamping it here is what
+     crushed the menu on the live store. */
+  padding-block: 6px;
+}
+
+.mp-header__burger {
+  color: var(--mp-accent-ink);
+  order: -1;
+}
+
+.mp-header__logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+
+  img {
+    height: 34px;
+    width: auto;
+    max-height: 34px;
+    object-fit: contain;
+  }
+}
+
+/* Location / branch picker - noon's "Deliver to Riyadh" slot. */
+.mp-header__scope {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--mp-r-pill);
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.16s ease;
+
+  &:hover { background: rgba(0, 0, 0, 0.11); }
+
+  /* The branch NAME is the part that can be long. Truncate it rather than
+     let it push the search bar out of the row. */
+  &-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Search: the widest thing in the row, and allowed to shrink last. */
+.mp-header__search {
+  flex: 1 1 auto;
+  min-width: 0;          /* without this the flex item refuses to shrink */
+  max-width: 900px;
+
+  salla-search {
+    display: block;
+    width: 100%;
+  }
+}
+
+.mp-header__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+  color: var(--mp-accent-ink);
+}
+
+.mp-header__cart .header-btn__icon,
+.mp-header__user {
+  color: var(--mp-accent-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   ROW 2 - category rail
+   ------------------------------------------------------------------------ */
+.mp-header__nav {
+  background: var(--mp-surface);
+  border-bottom: 1px solid var(--mp-line);
+}
+
+.mp-header__nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: var(--mp-header-nav);
+}
+
+/* custom-main-menu is a Salla web component; it renders its own <nav><ul>.
+   Height is pinned here AND the ul's padding zeroed, because the stock theme
+   ships padding-top: 32px on that ul - pin the height without zeroing the
+   padding and every link is shoved to the bottom of the bar. That exact bug
+   is live on smartbest.co right now. */
+.mp-header__nav-inner custom-main-menu {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: var(--mp-header-nav);
+
+  nav,
+  > nav > ul {
+    height: var(--mp-header-nav);
+    display: flex;
+    align-items: center;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  /* One scrolling line rather than a wrapping block, so the header's height
+     never depends on how many categories the merchant created. */
+  > nav > ul {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  > nav > ul > li > a {
+    white-space: nowrap;
+    padding-block: 4px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--mp-ink-2);
+    transition: color 0.16s ease;
+
+    &:hover { color: var(--mp-accent); }
+  }
+}
+
+.mp-header__contacts {
+  flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------------------------
+   Utility strip (merchant "important links")
+   Kept in the DOM so a merchant-configured menu is never silently dropped,
+   but it is the lowest-value row on a phone, so it is hidden there.
+   ------------------------------------------------------------------------ */
+.mp-header__utility {
+  background: var(--mp-ground);
+  border-bottom: 1px solid var(--mp-line);
+  font-size: 0.75rem;
+
+  @media (max-width: 768px) { display: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Small screens
+   ------------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .mp-header__inner {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Search drops to its own full-width line below the logo row - the same
+     thing noon does on a phone. order:10 puts it after everything else
+     without changing DOM order, so the tab sequence stays logical. */
+  .mp-header__search {
+    order: 10;
+    flex: 1 0 100%;
+    max-width: none;
+  }
+
+  .mp-header__logo img { height: 28px; max-height: 28px; }
+
+  /* The branch name is the first thing to go when width is scarce. */
+  .mp-header__scope-name { display: none; }
+
+  .mp-header__nav-inner { height: var(--mp-header-nav); }
+  .mp-header__nav-inner custom-main-menu,
+  .mp-header__nav-inner custom-main-menu nav,
+  .mp-header__nav-inner custom-main-menu > nav > ul { height: var(--mp-header-nav); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-header__scope,
+  .mp-header__nav-inner custom-main-menu > nav > ul > li > a {
+    transition: none;
+  }
+}

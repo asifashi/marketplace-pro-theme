@@ -1,0 +1,267 @@
+/* =============================================================================
+   PRODUCT CARD
+   =============================================================================
+   The card appears on the home page, category pages, search, brand pages and
+   the cross-sell rails - one file, and it changes the look of the whole store.
+   That is why it comes before the remaining home blocks.
+
+   MEASURED on the running dev server, so these are the real class names the
+   engine emits, not guesses:
+
+     .s-product-card-entry              303 x 396
+       .s-product-card-image            303 x 240   <- image + overlay buttons
+         .s-button-wrap                             <- wishlist, 40x40
+       .s-product-card-content          303 x 150
+         .s-product-card-content-main   -> h3.s-product-card-content-title
+         .s-product-card-content-sub    -> h4.s-product-card-price
+         .s-product-card-content-footer -> salla-add-product-button
+
+   The engine owns this markup, so everything here is styling of existing
+   nodes plus ::before/::after. No node is moved with JS - a card that
+   reorders itself after paint is what causes the visible "jump" on slow
+   connections.
+
+   All values come from _mp-tokens.scss.
+   ========================================================================== */
+
+.s-product-card-entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r);
+  overflow: hidden;
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: transparent;
+    box-shadow: var(--mp-shadow-hover);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   IMAGE
+   Square, so a grid of cards has one baseline regardless of what shape the
+   merchant's photography is. Mixed aspect ratios are the single fastest way
+   to make a catalogue look amateur.
+   ------------------------------------------------------------------------ */
+.s-product-card-image {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  height: auto !important;
+  background: var(--mp-ground);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;   /* product shots are usually cut-outs - never crop them */
+    padding: 8px;
+    transition: transform 0.35s ease;
+  }
+}
+
+.s-product-card-entry:hover .s-product-card-image img {
+  transform: scale(1.05);
+}
+
+/* ---- Overlay action buttons (wishlist etc.) ------------------------------
+   Stacked vertically on the image and revealed on hover, the way marketplace
+   cards do it. They stay in the DOM and are only moved/faded, so keyboard
+   focus still reaches them - `display:none` would take them out of the tab
+   order entirely, which is a real accessibility regression for a control the
+   card genuinely offers. */
+.s-product-card-image .s-button-wrap {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.s-product-card-entry:hover .s-product-card-image .s-button-wrap,
+.s-product-card-image .s-button-wrap:focus-within {
+  opacity: 1;
+  transform: none;
+}
+
+.s-product-card-image .s-button-element {
+  width: 36px;
+  height: 36px;
+  min-height: 0;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  color: var(--mp-ink-2);
+  box-shadow: var(--mp-shadow);
+  transition: background 0.16s ease, color 0.16s ease;
+
+  &:hover {
+    background: var(--mp-accent);
+    border-color: var(--mp-accent);
+    color: var(--mp-accent-ink);
+  }
+}
+
+/* Touch devices have no hover, so the controls must simply be visible. */
+@media (hover: none) {
+  .s-product-card-image .s-button-wrap { opacity: 1; transform: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   CONTENT
+   ------------------------------------------------------------------------ */
+.s-product-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 6px;
+  padding: 10px 12px 12px;
+}
+
+.s-product-card-content-title,
+.s-product-card-content-title a {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--mp-ink-2);
+
+  /* Exactly two lines. Uneven title heights make the price row zig-zag
+     across a grid, which is the thing that reads as "unfinished". */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.s-product-card-entry:hover .s-product-card-content-title a { color: var(--mp-ink); }
+
+/* ---- Price row -----------------------------------------------------------
+   Sale price large and dark; the struck original and the saving sit beside it
+   at meta size. The discount pill is the only red on the card, so it reads as
+   the offer rather than as decoration. */
+.s-product-card-content-sub {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 0;
+}
+
+.s-product-card-price,
+.s-product-card-sale-price h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--mp-ink);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.s-product-card-full-price {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--mp-ink-3);
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-product-card-promotion-title {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: var(--mp-r-sm);
+  background: color-mix(in srgb, var(--mp-sale) 10%, transparent);
+  color: var(--mp-sale);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+/* ---- Footer / add to cart ------------------------------------------------
+   margin-top:auto pins the button to the bottom of every card, so a grid of
+   cards has one button line regardless of title length. */
+.s-product-card-content-footer {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.s-product-card-content-footer salla-add-product-button,
+.s-product-card-content-footer .s-button-wrap {
+  display: block;
+  width: 100%;
+}
+
+.s-product-card-content-footer .s-button-element {
+  width: 100%;
+  min-height: 38px;
+  border-radius: var(--mp-r);
+  background: var(--mp-accent);
+  border-color: var(--mp-accent);
+  color: var(--mp-accent-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: filter 0.16s ease;
+
+  &:hover { filter: brightness(0.94); }
+}
+
+/* ---------------------------------------------------------------------------
+   BADGES
+   Out-of-stock must never look like an offer, so it gets the neutral ink
+   rather than the accent.
+   ------------------------------------------------------------------------ */
+.s-product-card-out-of-stock {
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 10px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-ink);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------------
+   MOBILE - three per row
+   ------------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .s-product-card-content { padding: 8px; gap: 4px; }
+
+  .s-product-card-content-title,
+  .s-product-card-content-title a {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .s-product-card-price,
+  .s-product-card-sale-price h4 { font-size: 0.8125rem; }
+  .s-product-card-full-price { font-size: 0.625rem; }
+
+  .s-product-card-content-footer .s-button-element {
+    min-height: 32px;
+    font-size: 0.6875rem;
+  }
+
+  /* No hover on touch: the overlay controls would otherwise be unreachable. */
+  .s-product-card-image .s-button-wrap { opacity: 1; transform: none; }
+  .s-product-card-image .s-button-element { width: 30px; height: 30px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-product-card-entry,
+  .s-product-card-image img,
+  .s-product-card-image .s-button-wrap,
+  .s-product-card-content-footer .s-button-element {
+    transition: none !important;
+    transform: none !important;
+  }
+}

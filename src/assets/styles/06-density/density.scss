@@ -1,0 +1,105 @@
+/* ==========================================================================
+   DENSITY LAYER  —  "zoom out" pass, noon-style information density
+   --------------------------------------------------------------------------
+   Salla's stock themes are deliberately "zoomed in": a 1280px container,
+   290px product cards, 6 categories per row and generous vertical rhythm.
+   noon does the opposite - a wide canvas, small cards, many items per row,
+   tight spacing - so far more of the catalogue is visible without scrolling.
+
+   This file is imported LAST so it wins on cascade without editing any of
+   the theme's own partials. Every value is driven by the custom properties
+   below, so density can be tuned in one place, and the whole layer can be
+   removed by deleting a single @import.
+
+   NOTE: colours and branding are deliberately untouched. This changes the
+   LAYOUT only, per the brief.
+   ========================================================================== */
+
+:root {
+  /* product grid */
+  --d-card-min: 190px;   /* was effectively 290px */
+  --d-grid-gap: 10px;    /* was 24-32px */
+
+  /* rhythm */
+  --d-block-gap: 20px;   /* vertical space between home blocks */
+  --d-title-size: 1rem;  /* block titles: was text-lg (1.125rem) */
+}
+
+/* --------------------------------------------------------------------------
+   1. Canvas — the single biggest lever. A wider container fits more per row
+      before anything else is touched.
+   -------------------------------------------------------------------------- */
+.container {
+  max-width: 1600px !important;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+@media (min-width: 1600px) {
+  .container { padding-left: 16px; padding-right: 16px; }
+}
+
+/* --------------------------------------------------------------------------
+   2. Product grid — small cards, many per row.
+      Salla renders products into a light-DOM grid, so we can re-declare it.
+   -------------------------------------------------------------------------- */
+salla-products-list .s-products-list-wrapper,
+.s-products-list-wrapper,
+.grid-cols-auto-fill {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(var(--d-card-min), 1fr)) !important;
+  gap: var(--d-grid-gap) !important;
+}
+
+/* Card chrome: less padding, smaller type, shorter titles */
+.s-product-card-content        { padding: 8px !important; }
+.s-product-card-minimal .s-product-card-content { padding: 8px !important; }
+.s-product-card-content-title  { font-size: 0.8125rem; line-height: 1.25rem; }
+.s-product-card-content-title a { -webkit-line-clamp: 2; }
+.s-product-card-content-sub-title { font-size: 0.6875rem; }
+.s-product-card-price          { font-size: 0.875rem; font-weight: 700; }
+.s-product-card-full-price     { font-size: 0.75rem; }
+.s-product-card-entry          { border-radius: 6px; }
+
+/* --------------------------------------------------------------------------
+   3. Category strip — noon shows ~12 small circular categories per row,
+      the stock theme shows 6.
+   -------------------------------------------------------------------------- */
+salla-slider .slide--one-sixth {
+  width: 33.333% !important;
+}
+@media (min-width: 640px) { salla-slider .slide--one-sixth { width: 20% !important; } }
+@media (min-width: 768px) { salla-slider .slide--one-sixth { width: 12.5% !important; } }
+@media (min-width: 1024px){ salla-slider .slide--one-sixth { width: 9.09% !important; } }
+
+.slide--cat-entry img { width: 56px !important; height: 56px !important; }
+.slide--cat-entry h2  { font-size: 0.75rem; line-height: 1rem; }
+
+/* Product sliders: narrower slides so more peek into view */
+salla-slider .slide--one-fourth {
+  max-width: 210px !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. Vertical rhythm — tighten the gaps between home blocks.
+   -------------------------------------------------------------------------- */
+.s-block            { margin-top: var(--d-block-gap) !important; }
+.s-block__title     { margin-bottom: 10px !important; }
+.s-block__title h2  { font-size: var(--d-title-size) !important; }
+
+/* Hero banner: noon's is wide and short, not tall and cinematic */
+.s-block--hero-slider .home-slider__slide { height: 320px !important; }
+@media (min-width: 1024px) {
+  .s-block--hero-slider .home-slider__slide { height: 380px !important; }
+}
+
+/* --------------------------------------------------------------------------
+   5. Header — search is the primary control on noon, not an afterthought.
+      This gives the existing search input real presence.
+   -------------------------------------------------------------------------- */
+.s-search-input,
+salla-search input[type="text"],
+salla-search input[type="search"] {
+  height: 44px;
+  font-size: 0.9375rem;
+}

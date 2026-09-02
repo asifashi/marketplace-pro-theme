@@ -1,0 +1,148 @@
+{#
+  ============================================================================
+  MARKETPLACE HEADER  -  noon-style two-row layout
+  ============================================================================
+  This is the file that proves the Twig-vs-React point. In a React Twilight
+  theme the header belongs to the engine and can only be injected around
+  (header:start / header:end append only - I read HookSlot's source). Here the
+  theme owns every tag, so the header can actually be restructured.
+
+  WHAT CHANGED FROM THE STOCK HEADER
+  ----------------------------------------------------------------------------
+  Stock Salla renders a utility top-navbar, then a white main-nav holding
+  logo + menu + cart. Measured on the live store that came to 134px, with the
+  search stranded in the top row away from everything else.
+
+  noon uses two rows and puts search at the centre of the first:
+    row 1 (accent) - logo | location | SEARCH (widest thing) | user | cart
+    row 2 (white)  - category menu, one fixed-height scrolling line
+
+  Search is the widest element on purpose. On a marketplace search IS the
+  primary navigation, not a utility tucked into a corner.
+
+  EVERY SALLA COMPONENT FROM THE STOCK HEADER IS KEPT
+  ----------------------------------------------------------------------------
+  salla-search, salla-cart-summary, salla-user-menu, salla-localization-modal,
+  salla-bullet-delivery-tag, salla-contacts, custom-main-menu and the scopes
+  button are all still here - only their arrangement changed. Dropping any of
+  them silently removes real storefront features (language switch, branch
+  picker, cart drawer), which is why this is a re-layout and not a rewrite
+  from a blank file.
+
+  Heights come from --mp-header-top / --mp-header-nav in _mp-tokens.scss so
+  sticky offsets below cannot drift out of sync with the header - which is how
+  the menu ended up pinned to the bottom of the bar on the live store.
+
+  | Variable         | Type    | Description                     |
+  |------------------|---------|---------------------------------|
+  | cart             | object  |                                 |
+  | cart.items_count | int     |                                 |
+  | cart.total       | string  | Formatted total ex: "١٠٠ ر.س"   |
+#}
+{% set important_links = theme.settings.get('important_links') %}
+
+<header data-testid="store-header" class="store-header mp-header">
+
+  {# Delivery tag keeps its own full-width row on mobile, as before. #}
+  <div class="lg:hidden">
+    <salla-bullet-delivery-tag></salla-bullet-delivery-tag>
+  </div>
+
+  {# ==========================================================================
+     ROW 1 - the accent bar
+     ========================================================================== #}
+  <div class="mp-header__bar">
+    <div class="container mp-header__inner">
+
+      {# ---- Mobile menu toggle -------------------------------------------
+         First in DOM order so it is the first thing a keyboard or screen
+         reader meets on small screens, where it is the primary control. #}
+      <a data-testid="store-header-mobile-toggle"
+         class="lg:hidden mburger mburger--collapse leading-none mp-header__burger"
+         href="#mobile-menu" aria-label="Open menu">
+        <i class="sicon-menu text-2xl"></i>
+      </a>
+
+      {# ---- Brand ---------------------------------------------------------
+         Moved UP from the old second row. noon's logo sits in the accent bar
+         beside the search, not on a separate white line below it. #}
+      <a data-testid="store-header-logo" class="navbar-brand mp-header__logo" href="{{ store.url }}">
+        <img fetchpriority="high" width="100%" height="100%" loading="eager"
+             src="{{ store.logo|cdn(175) }}" alt="{{ store.name }} logo">
+        {% if is_page('index') %}
+          <h1 class="sr-only">{{ store.name }}</h1>
+        {% else %}
+          <h2 class="sr-only">{{ store.name }}</h2>
+        {% endif %}
+      </a>
+
+      {# ---- Location / branch scope ---------------------------------------
+         noon leads with "Deliver to Riyadh". Same idea: if the store has
+         branches, the shopper's branch belongs beside the logo, not buried. #}
+      {% if store.scope %}
+        <button class="mp-header__scope"
+                onclick="salla.event.dispatch('scopes::open', {'mode': 'default'})">
+          <i class="sicon-location" aria-hidden="true"></i>
+          <span class="mp-header__scope-name">{{ store.scope.name }}</span>
+        </button>
+      {% endif %}
+
+      {# ---- Search - the widest element in the row ------------------------ #}
+      <div class="header-search mp-header__search">
+        <salla-search data-testid="store-header-search" inline oval height="40"></salla-search>
+      </div>
+
+      {# ---- Right-hand actions -------------------------------------------- #}
+      <div class="mp-header__actions">
+
+        {% if store.settings.is_multilingual or store.settings.currencies_enabled %}
+          <div class="header-buttons mp-header__lang">
+            <salla-localization-modal data-testid="store-header-localization" show-trigger></salla-localization-modal>
+          </div>
+        {% endif %}
+
+        {# Desktop-only delivery tag; the mobile instance is the row above. #}
+        <div class="hidden lg:block">
+          <salla-bullet-delivery-tag></salla-bullet-delivery-tag>
+        </div>
+
+        <salla-user-menu data-testid="store-header-user-menu"
+                         class="mp-header__user"
+                         avatar-only show-header show-trigger></salla-user-menu>
+
+        <salla-cart-summary data-testid="store-header-cart" class="mp-header__cart">
+          <i slot="icon" class="header-btn__icon icon sicon-shopping-bag"></i>
+        </salla-cart-summary>
+      </div>
+    </div>
+  </div>
+
+  {# ==========================================================================
+     ROW 2 - category rail
+     --------------------------------------------------------------------------
+     One fixed-height line that scrolls sideways instead of wrapping. A nav
+     that wraps changes the header's height with the number of categories a
+     merchant happens to have, and every sticky offset underneath it drifts.
+     Fixed height is what keeps the rest of the page honest.
+     ========================================================================== #}
+  <div id="mainnav" class="main-nav-container mp-header__nav">
+    <div class="container mp-header__nav-inner">
+      <custom-main-menu></custom-main-menu>
+
+      {# Contacts pushed to the end of the category line - noon runs its
+         "Get free delivery" pill in the same position. #}
+      <salla-contacts data-testid="store-header-contacts" class="mp-header__contacts" is-header></salla-contacts>
+    </div>
+  </div>
+
+  {# Merchant-configured "important links" menu. Kept because removing it
+     would silently drop a menu the merchant set up, but it is low priority,
+     so it renders last and is hidden on small screens by CSS, not deleted. #}
+  {% if important_links %}
+    <div class="mp-header__utility">
+      <div class="container">
+        <salla-menu data-testid="store-header-topnav" source="footer" topnav></salla-menu>
+      </div>
+    </div>
+  {% endif %}
+</header>
