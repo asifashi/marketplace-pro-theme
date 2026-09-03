@@ -6011,6 +6011,583 @@ body.footer-dark .mp-footer .mp-footer__tax-text b {
     transition: none;
   }
 }
+/* =============================================================================
+   PRODUCT CARD
+   =============================================================================
+   The card appears on the home page, category pages, search, brand pages and
+   the cross-sell rails - one file, and it changes the look of the whole store.
+   That is why it comes before the remaining home blocks.
+
+   MEASURED on the running dev server, so these are the real class names the
+   engine emits, not guesses:
+
+     .s-product-card-entry              303 x 396
+       .s-product-card-image            303 x 240   <- image + overlay buttons
+         .s-button-wrap                             <- wishlist, 40x40
+       .s-product-card-content          303 x 150
+         .s-product-card-content-main   -> h3.s-product-card-content-title
+         .s-product-card-content-sub    -> h4.s-product-card-price
+         .s-product-card-content-footer -> salla-add-product-button
+
+   The engine owns this markup, so everything here is styling of existing
+   nodes plus ::before/::after. No node is moved with JS - a card that
+   reorders itself after paint is what causes the visible "jump" on slow
+   connections.
+
+   All values come from _mp-tokens.scss.
+   ========================================================================== */
+.s-product-card-entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  background: var(--mp-surface);
+  border: 1px solid #e6e9ef;
+  border: 1px solid var(--mp-line);
+  border-radius: 8px;
+  border-radius: var(--mp-r);
+  overflow: hidden;
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+.s-product-card-entry:hover {
+  transform: translateY(-3px);
+  border-color: transparent;
+  box-shadow: 0 8px 22px rgba(14, 20, 32, 0.12);
+  box-shadow: var(--mp-shadow-hover);
+}
+/* ---------------------------------------------------------------------------
+   IMAGE
+   Square, so a grid of cards has one baseline regardless of what shape the
+   merchant's photography is. Mixed aspect ratios are the single fastest way
+   to make a catalogue look amateur.
+   ------------------------------------------------------------------------ */
+.s-product-card-image {
+  position: relative;
+  aspect-ratio: 1/1;
+  height: auto !important;
+  background: #f4f6f9;
+  background: var(--mp-ground);
+  overflow: hidden;
+}
+.s-product-card-image img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: contain;
+     object-fit: contain; /* product shots are usually cut-outs - never crop them */
+  padding: 8px;
+  transition: transform 0.35s ease;
+}
+.s-product-card-entry:hover .s-product-card-image img {
+  transform: scale(1.05);
+}
+/* ---- Overlay action buttons (wishlist etc.) ------------------------------
+   Stacked vertically on the image and revealed on hover, the way marketplace
+   cards do it. They stay in the DOM and are only moved/faded, so keyboard
+   focus still reaches them - `display:none` would take them out of the tab
+   order entirely, which is a real accessibility regression for a control the
+   card genuinely offers. */
+.s-product-card-image .s-button-wrap {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.s-product-card-entry:hover .s-product-card-image .s-button-wrap,
+.s-product-card-image .s-button-wrap:focus-within {
+  opacity: 1;
+  transform: none;
+}
+.s-product-card-image .s-button-element {
+  width: 36px;
+  height: 36px;
+  min-height: 0;
+  border-radius: 4px;
+  border-radius: var(--mp-r-sm);
+  background: #ffffff;
+  background: var(--mp-surface);
+  border: 1px solid #e6e9ef;
+  border: 1px solid var(--mp-line);
+  color: #2b3444;
+  color: var(--mp-ink-2);
+  box-shadow: 0 1px 2px rgba(14, 20, 32, 0.06);
+  box-shadow: var(--mp-shadow);
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.s-product-card-image .s-button-element:hover {
+  background: #f0a500;
+  background: var(--mp-accent);
+  border-color: #f0a500;
+  border-color: var(--mp-accent);
+  color: #1a1200;
+  color: var(--mp-accent-ink);
+}
+/* Touch devices have no hover, so the controls must simply be visible. */
+@media (hover: none) {
+  .s-product-card-image .s-button-wrap {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* ---------------------------------------------------------------------------
+   CONTENT
+   ------------------------------------------------------------------------ */
+.s-product-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 6px;
+  padding: 10px 12px 12px;
+}
+.s-product-card-content-title,
+.s-product-card-content-title a {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: #2b3444;
+  color: var(--mp-ink-2);
+  /* Exactly two lines. Uneven title heights make the price row zig-zag
+     across a grid, which is the thing that reads as "unfinished". */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+.s-product-card-entry:hover .s-product-card-content-title a {
+  color: #0e1420;
+  color: var(--mp-ink);
+}
+/* ---- Price row -----------------------------------------------------------
+   Sale price large and dark; the struck original and the saving sit beside it
+   at meta size. The discount pill is the only red on the card, so it reads as
+   the offer rather than as decoration. */
+.s-product-card-content-sub {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 0;
+}
+.s-product-card-price,
+.s-product-card-sale-price h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0e1420;
+  color: var(--mp-ink);
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+.s-product-card-full-price {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7385;
+  color: var(--mp-ink-3);
+  -webkit-text-decoration: line-through;
+  text-decoration: line-through;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+.s-product-card-promotion-title {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border-radius: var(--mp-r-sm);
+  background: rgba(228, 0, 43, 0.1);
+  color: #e4002b;
+  color: var(--mp-sale);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+@supports (color: color-mix(in lch, red, blue)){
+.s-product-card-promotion-title {
+  background: color-mix(in srgb, var(--mp-sale) 10%, transparent);
+}
+}
+/* ---- Footer / add to cart ------------------------------------------------
+   margin-top:auto pins the button to the bottom of every card, so a grid of
+   cards has one button line regardless of title length. */
+.s-product-card-content-footer {
+  margin-top: auto;
+  padding-top: 8px;
+}
+.s-product-card-content-footer salla-add-product-button,
+.s-product-card-content-footer .s-button-wrap {
+  display: block;
+  width: 100%;
+}
+.s-product-card-content-footer .s-button-element {
+  width: 100%;
+  min-height: 38px;
+  border-radius: 8px;
+  border-radius: var(--mp-r);
+  background: #f0a500;
+  background: var(--mp-accent);
+  border-color: #f0a500;
+  border-color: var(--mp-accent);
+  color: #1a1200;
+  color: var(--mp-accent-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: filter 0.16s ease;
+}
+.s-product-card-content-footer .s-button-element:hover {
+  filter: brightness(0.94);
+}
+/* ---------------------------------------------------------------------------
+   BADGES
+   Out-of-stock must never look like an offer, so it gets the neutral ink
+   rather than the accent.
+   ------------------------------------------------------------------------ */
+.s-product-card-out-of-stock {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border-radius: var(--mp-r-sm);
+  background: #0e1420;
+  background: var(--mp-ink);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+/* ---------------------------------------------------------------------------
+   MOBILE - three per row
+   ------------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .s-product-card-content {
+    padding: 8px;
+    gap: 4px;
+  }
+  .s-product-card-content-title,
+  .s-product-card-content-title a {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  .s-product-card-price,
+  .s-product-card-sale-price h4 {
+    font-size: 0.8125rem;
+  }
+  .s-product-card-full-price {
+    font-size: 0.625rem;
+  }
+  .s-product-card-content-footer .s-button-element {
+    min-height: 32px;
+    font-size: 0.6875rem;
+  }
+  /* No hover on touch: the overlay controls would otherwise be unreachable. */
+  .s-product-card-image .s-button-wrap {
+    opacity: 1;
+    transform: none;
+  }
+  .s-product-card-image .s-button-element {
+    width: 30px;
+    height: 30px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-product-card-entry,
+  .s-product-card-image img,
+  .s-product-card-image .s-button-wrap,
+  .s-product-card-content-footer .s-button-element {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+/* =============================================================================
+   HOME BLOCKS
+   =============================================================================
+   Shared styling for the built-in Salla home components. Class names here were
+   read out of the block templates themselves, not guessed:
+
+     .s-block__title          section header, used by every block that has one
+     .tab-trigger             the tab pills in featured-products-style1/2/3
+     .s-block--features       store-features strip
+     .s-block--best-offers    products-slider wrapper
+     .s-block--photos-slider  banner carousel wrapper
+
+   NOTE ON WHAT CAN AND CANNOT BE STYLED
+   ---------------------------------------------------------------------------
+   products-slider renders a single <salla-products-slider> web component and
+   nothing else, so only its OUTER box is ours. Its internals ship with the
+   platform. featured-products and store-features do have real markup in the
+   template, so those are styled properly. Anywhere a rule targets inside a
+   salla-* component it is because that component renders light DOM with the
+   s- classes, which is how the product card is reachable at all.
+
+   All values come from _mp-tokens.scss.
+   ========================================================================== */
+/* ---------------------------------------------------------------------------
+   BLOCK RHYTHM
+   Full width with the page gutter, matching the header and footer. A capped
+   container here would undo the full-bleed the rest of the theme sets up.
+   ------------------------------------------------------------------------ */
+.s-block {
+  margin-top: 24px;
+  margin-top: var(--mp-section-gap);
+}
+.s-block.container,
+.s-block > .container {
+  max-width: 100%;
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-left: var(--mp-gutter);
+  padding-right: var(--mp-gutter);
+}
+/* Two category blocks back to back should read as one band, not two
+   sections with a gap between them. */
+.s-block--categories + .s-block--categories {
+  margin-top: 4px;
+}
+/* ---------------------------------------------------------------------------
+   SECTION HEADER
+   Title on the leading side, actions on the trailing side. `gap` does the
+   spacing so an empty tabs list cannot leave a phantom hole.
+   ------------------------------------------------------------------------ */
+.s-block__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.s-block__title .right-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.s-block__title h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0e1420;
+  color: var(--mp-ink);
+}
+.s-block__title {
+  /* A subtitle, when the merchant sets one, is supporting text - it must not
+     compete with the heading for weight. */
+}
+.s-block__title p, .s-block__title .sub-title {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  color: #6b7385;
+  color: var(--mp-ink-3);
+}
+/* "View all" - the link Salla renders at the end of a block header. Given a
+   pill so it reads as an action rather than as body text. */
+.s-block__title a[href]:not(.tab-trigger),
+.s-block .display-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border-radius: var(--mp-r-pill);
+  background: #f4f6f9;
+  background: var(--mp-ground);
+  border: 1px solid #e6e9ef;
+  border: 1px solid var(--mp-line);
+  color: #2b3444;
+  color: var(--mp-ink-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.s-block__title a[href]:not(.tab-trigger):hover,
+.s-block .display-all-link:hover {
+  background: #0e1420;
+  background: var(--mp-ink);
+  border-color: #0e1420;
+  border-color: var(--mp-ink);
+  color: #fff;
+}
+/* ---------------------------------------------------------------------------
+   TABS (featured-products styles 1-3)
+   The template ships `is-active` on the first trigger and swaps it with JS,
+   so both states are styled rather than relying on :focus.
+   ------------------------------------------------------------------------ */
+.s-block-tabs .tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.s-block-tabs .tabs::-webkit-scrollbar {
+  display: none;
+}
+.tab-trigger {
+  --mp-tab-fg: var(--mp-ink-3);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border-radius: var(--mp-r-pill);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #6b7385;
+  color: var(--mp-tab-fg);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+.tab-trigger:hover {
+  --mp-tab-fg: var(--mp-ink);
+  background: #f4f6f9;
+  background: var(--mp-ground);
+}
+.tab-trigger.is-active {
+  --mp-tab-fg: var(--mp-accent-ink);
+  background: #f0a500;
+  background: var(--mp-accent);
+  border-color: #f0a500;
+  border-color: var(--mp-accent);
+}
+/* ---------------------------------------------------------------------------
+   STORE FEATURES
+   The shipping / returns / support strip. Given a card each and a tinted icon
+   plate so it reads as a row of reassurances rather than loose text.
+   ------------------------------------------------------------------------ */
+.s-block--features .s-block--features__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border-radius: var(--mp-r);
+  background: #ffffff;
+  background: var(--mp-surface);
+  border: 1px solid #e6e9ef;
+  border: 1px solid var(--mp-line);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+.s-block--features .s-block--features__item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(14, 20, 32, 0.12);
+  box-shadow: var(--mp-shadow-hover);
+}
+.s-block--features .feature-icon {
+  flex: 0 0 auto;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border-radius: var(--mp-r-pill);
+  background: #fff6e0;
+  background: var(--mp-accent-soft);
+  color: #f0a500;
+  color: var(--mp-accent);
+  font-size: 1.25rem;
+}
+.s-block--features h3, .s-block--features h4 {
+  margin: 0 0 2px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0e1420;
+  color: var(--mp-ink);
+}
+.s-block--features p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #6b7385;
+  color: var(--mp-ink-3);
+}
+/* ---------------------------------------------------------------------------
+   PRODUCT RAILS
+   overflow-hidden is already on the block in the template; this only tightens
+   the gap so a rail of cards reads as one row rather than floating islands.
+   ------------------------------------------------------------------------ */
+.s-block--best-offers salla-products-slider,
+.s-block--special-products salla-products-slider {
+  display: block;
+  width: 100%;
+}
+.s-block--best-offers .swiper-slide,
+.s-block--special-products .swiper-slide {
+  height: auto;
+}
+.s-block--best-offers,
+.s-block--special-products { /* equal-height cards across the rail */ }
+/* ---------------------------------------------------------------------------
+   BANNERS
+   Aspect ratio rather than a fixed height, so a banner is never letterboxed
+   with blank bars down both sides - that is what a `contain` + fixed height
+   combination produces once the container goes full width.
+   ------------------------------------------------------------------------ */
+.s-block--photos-slider img, .s-block--photos-slider .swiper-slide img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border-radius: var(--mp-r);
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+.s-block--fixed-banner img, .s-block--fixed-banner .banner-entry {
+  width: 100%;
+  border-radius: 8px;
+  border-radius: var(--mp-r);
+  -o-object-fit: cover;
+     object-fit: cover;
+  background-size: cover;
+  background-position: center;
+}
+/* ---------------------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .s-block__title {
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .s-block__title h2 {
+    font-size: 1rem;
+  }
+  .s-block__title a[href]:not(.tab-trigger),
+  .s-block .display-all-link {
+    padding: 5px 11px;
+    font-size: 0.75rem;
+  }
+  .tab-trigger {
+    padding: 5px 11px;
+    font-size: 0.75rem;
+  }
+  .s-block--features .s-block--features__item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .s-block--features .feature-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  .s-block--features h3, .s-block--features h4 {
+    font-size: 0.8125rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-block__title a[href],
+  .tab-trigger,
+  .s-block--features .s-block--features__item {
+    transition: none !important;
+    transform: none !important;
+  }
+}
 .store-footer{
     position: relative;
     margin-top: 2rem;
@@ -8245,6 +8822,14 @@ model-viewer[style*=width]:before{
   padding-right: var(--mp-gutter);
 }
 .mp-deal .s-comments-product .s-comments-container {
+  max-width: 100%;
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-left: var(--mp-gutter);
+  padding-right: var(--mp-gutter);
+}
+.s-block.s-comments-product .s-comments-container,
+.s-block > .s-comments-product .s-comments-container {
   max-width: 100%;
   padding-left: 32px;
   padding-right: 32px;

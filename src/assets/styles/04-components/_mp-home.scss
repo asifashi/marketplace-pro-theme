@@ -1,0 +1,263 @@
+/* =============================================================================
+   HOME BLOCKS
+   =============================================================================
+   Shared styling for the built-in Salla home components. Class names here were
+   read out of the block templates themselves, not guessed:
+
+     .s-block__title          section header, used by every block that has one
+     .tab-trigger             the tab pills in featured-products-style1/2/3
+     .s-block--features       store-features strip
+     .s-block--best-offers    products-slider wrapper
+     .s-block--photos-slider  banner carousel wrapper
+
+   NOTE ON WHAT CAN AND CANNOT BE STYLED
+   ---------------------------------------------------------------------------
+   products-slider renders a single <salla-products-slider> web component and
+   nothing else, so only its OUTER box is ours. Its internals ship with the
+   platform. featured-products and store-features do have real markup in the
+   template, so those are styled properly. Anywhere a rule targets inside a
+   salla-* component it is because that component renders light DOM with the
+   s- classes, which is how the product card is reachable at all.
+
+   All values come from _mp-tokens.scss.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   BLOCK RHYTHM
+   Full width with the page gutter, matching the header and footer. A capped
+   container here would undo the full-bleed the rest of the theme sets up.
+   ------------------------------------------------------------------------ */
+.s-block {
+  margin-top: var(--mp-section-gap);
+
+  &.container,
+  > .container {
+    max-width: 100%;
+    padding-inline: var(--mp-gutter);
+  }
+}
+
+/* Two category blocks back to back should read as one band, not two
+   sections with a gap between them. */
+.s-block--categories + .s-block--categories { margin-top: 4px; }
+
+/* ---------------------------------------------------------------------------
+   SECTION HEADER
+   Title on the leading side, actions on the trailing side. `gap` does the
+   spacing so an empty tabs list cannot leave a phantom hole.
+   ------------------------------------------------------------------------ */
+.s-block__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+
+  .right-side {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--mp-ink);
+  }
+
+  /* A subtitle, when the merchant sets one, is supporting text - it must not
+     compete with the heading for weight. */
+  p, .sub-title {
+    margin: 2px 0 0;
+    font-size: 0.8125rem;
+    color: var(--mp-ink-3);
+  }
+}
+
+/* "View all" - the link Salla renders at the end of a block header. Given a
+   pill so it reads as an action rather than as body text. */
+.s-block__title a[href]:not(.tab-trigger),
+.s-block .display-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: var(--mp-r-pill);
+  background: var(--mp-ground);
+  border: 1px solid var(--mp-line);
+  color: var(--mp-ink-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.16s ease, color 0.16s ease;
+
+  &:hover {
+    background: var(--mp-ink);
+    border-color: var(--mp-ink);
+    color: #fff;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   TABS (featured-products styles 1-3)
+   The template ships `is-active` on the first trigger and swaps it with JS,
+   so both states are styled rather than relying on :focus.
+   ------------------------------------------------------------------------ */
+.s-block-tabs .tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.tab-trigger {
+  --mp-tab-fg: var(--mp-ink-3);
+  padding: 6px 14px;
+  border-radius: var(--mp-r-pill);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--mp-tab-fg);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+
+  &:hover {
+    --mp-tab-fg: var(--mp-ink);
+    background: var(--mp-ground);
+  }
+
+  &.is-active {
+    --mp-tab-fg: var(--mp-accent-ink);
+    background: var(--mp-accent);
+    border-color: var(--mp-accent);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   STORE FEATURES
+   The shipping / returns / support strip. Given a card each and a tinted icon
+   plate so it reads as a row of reassurances rather than loose text.
+   ------------------------------------------------------------------------ */
+.s-block--features {
+  .s-block--features__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--mp-r);
+    background: var(--mp-surface);
+    border: 1px solid var(--mp-line);
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--mp-shadow-hover);
+    }
+  }
+
+  .feature-icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--mp-r-pill);
+    background: var(--mp-accent-soft);
+    color: var(--mp-accent);
+    font-size: 1.25rem;
+  }
+
+  h3, h4 {
+    margin: 0 0 2px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--mp-ink);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--mp-ink-3);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   PRODUCT RAILS
+   overflow-hidden is already on the block in the template; this only tightens
+   the gap so a rail of cards reads as one row rather than floating islands.
+   ------------------------------------------------------------------------ */
+.s-block--best-offers,
+.s-block--special-products {
+  salla-products-slider { display: block; width: 100%; }
+
+  .swiper-slide { height: auto; }   /* equal-height cards across the rail */
+}
+
+/* ---------------------------------------------------------------------------
+   BANNERS
+   Aspect ratio rather than a fixed height, so a banner is never letterboxed
+   with blank bars down both sides - that is what a `contain` + fixed height
+   combination produces once the container goes full width.
+   ------------------------------------------------------------------------ */
+.s-block--photos-slider {
+  img, .swiper-slide img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--mp-r);
+    object-fit: cover;
+  }
+}
+
+.s-block--fixed-banner {
+  img, .banner-entry {
+    width: 100%;
+    border-radius: var(--mp-r);
+    object-fit: cover;
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .s-block__title {
+    margin-bottom: 10px;
+    gap: 8px;
+
+    h2 { font-size: 1rem; }
+  }
+
+  .s-block__title a[href]:not(.tab-trigger),
+  .s-block .display-all-link {
+    padding: 5px 11px;
+    font-size: 0.75rem;
+  }
+
+  .tab-trigger { padding: 5px 11px; font-size: 0.75rem; }
+
+  .s-block--features {
+    .s-block--features__item { padding: 10px 12px; gap: 10px; }
+    .feature-icon { width: 36px; height: 36px; font-size: 1rem; }
+    h3, h4 { font-size: 0.8125rem; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-block__title a[href],
+  .tab-trigger,
+  .s-block--features .s-block--features__item {
+    transition: none !important;
+    transform: none !important;
+  }
+}
