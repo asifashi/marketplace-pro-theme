@@ -40,3 +40,6 @@ smartbest-theme
 shot-*.png
 cards-*.png
 OLD-TWIG-DO-NOT-USE.bat.txt
+
+# Local safety backups
+*.bak_*
